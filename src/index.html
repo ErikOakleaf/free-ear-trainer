@@ -1,39 +1,72 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
-  </head>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="styles.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Tauri App</title>
+        <script type="module" src="/main.js" defer></script>
+    </head>
 
-  <body>
-    <main class="container">
-      <h1>Welcome to Tauri</h1>
-
-      <div class="row">
-        <a href="https://tauri.app" target="_blank">
-          <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a
-          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-          target="_blank"
-        >
-          <img
-            src="/assets/javascript.svg"
-            class="logo vanilla"
-            alt="JavaScript logo"
-          />
-        </a>
-      </div>
-      <p>Click on the Tauri logo to learn more about the framework hot swap yayayay</p>
-
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
-      <p id="greet-msg"></p>
-    </main>
-  </body>
+    <body>
+        <main class="container">
+            <div class="all-buttons-container">
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="unison">
+                        Unison
+                    </button>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="minorSecond">
+                        Minor Second
+                    </button>
+                    <button type="button" class="interval-button" id="majorSecond">
+                        Major Second
+                    </button>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="minorThird">
+                        Minor Third
+                    </button>
+                    <button type="button" class="interval-button" id="majorThird">
+                        Major Third
+                    </button>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="perfectFourth">
+                        Perfect Fourth
+                    </button>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="tritone">
+                        Tritone
+                    </button>
+                    <button type="button" class="interval-button" id="perfectFifth">
+                        Perfect Fifth
+                    </button>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="minorSixth">
+                        Minor Sixth
+                    </button>
+                    <button type="button" class="interval-button" id="majorSixth">
+                        Major Sixth
+                    </button>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="minorSeventh">
+                        Minor Seventh
+                    </button>
+                    <button type="button" class="interval-button" id="majorSeventh">
+                        Major Seventh
+                    </button>
+                </div>
+                <div class="button-container">
+                    <button type="button" class="interval-button" id="perfectOctave">
+                        Perfect Octave
+                    </button>
+                </div>
+            </div>
+        </main>
+    </body>
 </html>
