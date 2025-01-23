@@ -115,7 +115,7 @@ button {
     display: flex;
     flex-direction: column;
     margin: auto;
-    width: 50%;
+    width: 25pc;
 }
 
 .button-container {

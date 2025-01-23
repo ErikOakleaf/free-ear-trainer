@@ -1,13 +1,10 @@
 const { invoke } = window.__TAURI__.core;
 
-let greetInputEl;
-let greetMsgEl;
+document.getElementById("testButton").addEventListener("click", () => {
+    invoke("play_audio", { filePath: "src/assets/sine_waves/69.wav" });
+    console.log("test button pressed");
+});
 
-async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsgEl.textContent = await invoke("greet", {
-        name: greetInputEl.value,
-    });
-}
-
-window.addEventListener("DOMContentLoaded", () => { console.log("dom content loaded event type thing")});
+window.addEventListener("DOMContentLoaded", () => {
+    console.log("dom content loaded event type thing");
+});

@@ -11,8 +11,6 @@
     "windows": [
       {
         "title": "ear-trainer",
-        "min-width": 600,
-        "min-height": 600,
         "width": 800,
         "height": 600
       }
