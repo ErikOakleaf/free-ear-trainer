@@ -12,7 +12,9 @@
       {
         "title": "ear-trainer",
         "width": 800,
-        "height": 600
+        "height": 620,
+        "minWidth": 800,
+        "minHeight": 620
       }
     ],
     "security": {
