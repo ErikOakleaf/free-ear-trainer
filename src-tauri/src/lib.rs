@@ -2,6 +2,7 @@ use std::{env, fs::File, thread, time::Duration};
 
 use rodio::{Decoder, OutputStream, Sink};
 
+use rand::prelude::SliceRandom;
 use rand::Rng;
 
 #[tauri::command]
@@ -29,9 +30,17 @@ fn play_audio(note_number: String) -> Result<(), String> {
     Ok(())
 }
 
-fn get_interval() -> [u8; 2] {
+// takes a bit mask where the thirteen least significant bits represent the valid intervals that
+// can be generated. returns two numbers that are the note numbers for the interval
+
+fn get_interval(valid_intervals: u16) -> [u8; 2] {
     let mut rng = rand::thread_rng();
-    let interval_size: u8 = rng.gen_range(0..=12);
+    let intervals: Vec<u8> = (0..=12)
+        .filter(|&i| valid_intervals & (1 << i) != 0)
+        .collect();
+    let &interval_size = intervals
+        .choose(&mut rng)
+        .expect("No valid intervals provided");
     let starting_note_number = rng.gen_range(57..=82 - interval_size);
 
     [starting_note_number, starting_note_number + interval_size]
@@ -39,7 +48,9 @@ fn get_interval() -> [u8; 2] {
 
 #[tauri::command]
 fn play_interval_audio() {
-    let interval = get_interval();
+    let interval = get_interval(8191);
+
+    println!("{}, {}", interval[0], interval[1]);
 
     thread::spawn(move || {
         let _ = play_audio(interval[0].to_string());
