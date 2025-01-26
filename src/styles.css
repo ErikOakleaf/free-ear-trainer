@@ -131,4 +131,5 @@ button {
     padding: 5px;
     margin: 5px;
     box-sizing: border-box;
+    transition: all 0.3s ease;
 }

@@ -1,18 +1,19 @@
 const { invoke } = window.__TAURI__.core;
 
-let current_interval = [];
+let currentInterval = [];
+const intervalButtons = document.querySelectorAll(".interval-button");
 
 document.getElementById("testButton").addEventListener("click", () => {
     invoke("get_interval", { validIntervals: 8191 }).then((interval) => {
-        current_interval = interval;
-        console.log(current_interval);
+        currentInterval = interval;
+        console.log(currentInterval);
         invoke("play_interval_audio", {
-            intervalInSemitones: current_interval,
+            intervalInSemitones: currentInterval,
         });
     });
 });
 
-document.querySelectorAll(".interval-button").forEach((button) => {
+intervalButtons.forEach((button) => {
     button.addEventListener("click", (event) => {
         // button id will represnt the interval as a string
         const buttonId = event.target.id;
@@ -37,16 +38,28 @@ document.querySelectorAll(".interval-button").forEach((button) => {
 
         const semitones = intervalToSemitones[buttonId];
 
-        const current_interval_semitones =
-            current_interval[1] - current_interval[0];
+        const currentInterval_semitones =
+            currentInterval[1] - currentInterval[0];
 
         console.log(semitones);
-        console.log(current_interval_semitones);
+        console.log(currentInterval_semitones);
 
-        if (current_interval_semitones == semitones) {
-            console.log("correct");
+        if (currentInterval_semitones == semitones) {
+            // turn every button to white if the correct answer is given
+
+            intervalButtons.forEach((button) => {
+                button.style.backgroundColor = "white";
+            });
+
+            // blink the current button green then white on the correct button
+            const currentButton = document.getElementById(buttonId);
+            currentButton.style.backgroundColor = "#50C878";
+            setTimeout(() => {
+                currentButton.style.backgroundColor = "white";
+            }, 300);
         } else {
-            console.log("false");
+            const currentButton = document.getElementById(buttonId);
+            currentButton.style.backgroundColor = "#CD5C5C";
         }
     });
 });
