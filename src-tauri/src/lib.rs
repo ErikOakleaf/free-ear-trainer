@@ -5,7 +5,23 @@ use rodio::{Decoder, OutputStream, Sink};
 use rand::prelude::SliceRandom;
 use rand::Rng;
 
+// takes a bit mask where the thirteen least significant bits represent the valid intervals that
+// can be generated. returns two numbers that are the note numbers for the interval
+
 #[tauri::command]
+fn get_interval(valid_intervals: u16) -> [u8; 2] {
+    let mut rng = rand::thread_rng();
+    let intervals: Vec<u8> = (0..=12)
+        .filter(|&i| valid_intervals & (1 << i) != 0)
+        .collect();
+    let &interval_size = intervals
+        .choose(&mut rng)
+        .expect("No valid intervals provided");
+    let starting_note_number = rng.gen_range(57..=82 - interval_size);
+
+    [starting_note_number, starting_note_number + interval_size]
+}
+
 fn play_audio(note_number: String) -> Result<(), String> {
     // create a new thread for audio playcback
 
@@ -30,34 +46,14 @@ fn play_audio(note_number: String) -> Result<(), String> {
     Ok(())
 }
 
-// takes a bit mask where the thirteen least significant bits represent the valid intervals that
-// can be generated. returns two numbers that are the note numbers for the interval
-
-fn get_interval(valid_intervals: u16) -> [u8; 2] {
-    let mut rng = rand::thread_rng();
-    let intervals: Vec<u8> = (0..=12)
-        .filter(|&i| valid_intervals & (1 << i) != 0)
-        .collect();
-    let &interval_size = intervals
-        .choose(&mut rng)
-        .expect("No valid intervals provided");
-    let starting_note_number = rng.gen_range(57..=82 - interval_size);
-
-    [starting_note_number, starting_note_number + interval_size]
-}
-
 #[tauri::command]
-fn play_interval_audio() {
-    let interval = get_interval(8191);
-
-    println!("{}, {}", interval[0], interval[1]);
-
+fn play_interval_audio(interval_in_semitones: [u8; 2]) {
     thread::spawn(move || {
-        let _ = play_audio(interval[0].to_string());
+        let _ = play_audio(interval_in_semitones[0].to_string());
 
         thread::sleep(Duration::from_secs_f32(0.5));
 
-        let _ = play_audio(interval[1].to_string());
+        let _ = play_audio(interval_in_semitones[1].to_string());
     });
 }
 
@@ -65,7 +61,7 @@ fn play_interval_audio() {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![play_audio, play_interval_audio])
+        .invoke_handler(tauri::generate_handler![play_interval_audio, get_interval])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
