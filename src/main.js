@@ -2,9 +2,16 @@ const { invoke } = window.__TAURI__.core;
 
 let currentInterval = [];
 const intervalButtons = document.querySelectorAll(".interval-button");
+const settingsIcon = document.getElementById("settingsIcon");
+const mainView = document.getElementById("main");
+const settingsView = document.getElementById("settings");
 
 async function get_new_interval() {
     currentInterval = await invoke("get_interval", { validIntervals: 8191 });
+
+    // debug stuff here
+    document.getElementById("testTag").innerHTML =
+        currentInterval[1] - currentInterval[0];
 }
 
 function play_interval_audio() {
@@ -12,10 +19,6 @@ function play_interval_audio() {
         intervalInSemitones: currentInterval,
     });
 }
-
-document.getElementById("testButton").addEventListener("click", () => {
-    play_interval_audio();
-});
 
 async function handleButtonClick(event) {
     // button id will represnt the interval as a string
@@ -68,6 +71,23 @@ async function handleButtonClick(event) {
         currentButton.style.backgroundColor = "#CD5C5C";
     }
 }
+
+settingsIcon.addEventListener("click", () => {
+    // toggle the views between flex and none
+    if (settingsView.style.display === "none") {
+        mainView.style.display = "none";
+        settingsView.style.display = "flex";
+        settingsIcon.src = "assets/cross-out-mark.svg"
+    } else {
+        mainView.style.display = "flex";
+        settingsView.style.display = "none";
+        settingsIcon.src = "assets/settings-cog.svg"
+    }
+});
+
+document.getElementById("testButton").addEventListener("click", () => {
+    play_interval_audio();
+});
 
 intervalButtons.forEach((button) => {
     button.addEventListener("click", handleButtonClick);
