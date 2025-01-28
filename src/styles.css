@@ -1,3 +1,7 @@
+* {
+    transition: all 0.3s ease;
+}
+
 :root {
     font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
     font-size: 16px;
@@ -21,7 +25,6 @@
     justify-content: center;
     text-align: center;
 }
-
 
 a {
     font-weight: 500;
@@ -99,6 +102,14 @@ button {
     width: 25pc;
 }
 
+.settings-buttons-container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    max-width: 40pc;
+    margin: auto;
+}
+
 .button-container {
     display: flex;
     padding: 10px;
@@ -113,4 +124,18 @@ button {
     margin: 5px;
     box-sizing: border-box;
     transition: all 0.3s ease;
+}
+
+.settings-button {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    max-width: 50%;
+}
+
+.settings-container {
+    display: flex;
+    flex-direction: row;
 }
