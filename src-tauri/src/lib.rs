@@ -1,3 +1,4 @@
+use std::fs;
 use std::{env, fs::File, thread, time::Duration};
 
 use rodio::{Decoder, OutputStream, Sink};
@@ -47,6 +48,12 @@ fn play_audio(note_number: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn write_settings(current_valid_intervals: u16) {
+    let settings_path = "src/data/settings.txt";
+    let _ = fs::write(settings_path, current_valid_intervals.to_string());
+}
+
+#[tauri::command]
 fn play_interval_audio(interval_in_semitones: [u8; 2]) {
     thread::spawn(move || {
         let _ = play_audio(interval_in_semitones[0].to_string());
@@ -61,7 +68,11 @@ fn play_interval_audio(interval_in_semitones: [u8; 2]) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![play_interval_audio, get_interval])
+        .invoke_handler(tauri::generate_handler![
+            play_interval_audio,
+            get_interval,
+            write_settings
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

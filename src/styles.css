@@ -126,13 +126,19 @@ button {
     transition: all 0.3s ease;
 }
 
-.settings-button {
+.settings-interval-button {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 10px;
     max-width: 50%;
+    transition: all 0.3s ease;
+    background-color: #dddddd;
+}
+
+.settings-interval-button.pressed {
+    background-color: #c1d8f0;
 }
 
 .settings-container {

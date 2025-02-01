@@ -5,6 +5,9 @@ const intervalButtons = document.querySelectorAll(".interval-button");
 const settingsIcon = document.getElementById("settingsIcon");
 const mainView = document.getElementById("main");
 const settingsView = document.getElementById("settings");
+const settingsIntervalButtons = document.querySelectorAll(
+    ".settings-interval-button",
+);
 
 async function get_new_interval() {
     currentInterval = await invoke("get_interval", { validIntervals: 8191 });
@@ -77,11 +80,11 @@ settingsIcon.addEventListener("click", () => {
     if (settingsView.style.display === "none") {
         mainView.style.display = "none";
         settingsView.style.display = "flex";
-        settingsIcon.src = "assets/cross-out-mark.svg"
+        settingsIcon.src = "assets/cross-out-mark.svg";
     } else {
         mainView.style.display = "flex";
         settingsView.style.display = "none";
-        settingsIcon.src = "assets/settings-cog.svg"
+        settingsIcon.src = "assets/settings-cog.svg";
     }
 });
 
@@ -92,6 +95,26 @@ document.getElementById("testButton").addEventListener("click", () => {
 intervalButtons.forEach((button) => {
     button.addEventListener("click", handleButtonClick);
 });
+
+settingsIntervalButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        button.classList.toggle("pressed");
+
+        invoke("write_settings", { currentValidIntervals: calculateBitmask() });
+    });
+});
+
+function calculateBitmask() {
+    let bitmask = 0;
+
+    settingsIntervalButtons.forEach((button, index) => {
+        if (button.classList.contains("pressed")) {
+            bitmask |= 1 << index;
+        }
+    });
+
+    return bitmask;
+}
 
 window.addEventListener("DOMContentLoaded", async () => {
     await get_new_interval();
