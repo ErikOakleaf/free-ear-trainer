@@ -9,8 +9,9 @@ const settingsIntervalButtons = document.querySelectorAll(
     ".settings-interval-button",
 );
 
-async function get_new_interval() {
-    currentInterval = await invoke("get_interval", { validIntervals: 8191 });
+async function get_new_interval(bitmask) {
+    console.log(bitmask);
+    currentInterval = await invoke("get_interval", { validIntervals: bitmask });
 
     // debug stuff here
     document.getElementById("testTag").innerHTML =
@@ -67,13 +68,47 @@ async function handleButtonClick(event) {
         }, 300);
 
         // get a new interval
-        await get_new_interval();
+        await get_new_interval(calculateBitmask());
         play_interval_audio();
     } else {
         const currentButton = document.getElementById(buttonId);
         currentButton.style.backgroundColor = "#CD5C5C";
     }
 }
+
+function calculateBitmask() {
+    let bitmask = 0;
+
+    settingsIntervalButtons.forEach((button, index) => {
+        if (button.classList.contains("pressed")) {
+            bitmask |= 1 << index;
+        }
+    });
+
+    return bitmask;
+}
+
+function applyBitmask(bitmask) {
+    intervalButtons.forEach((button, index) => {
+        if ((bitmask & (1 << index)) !== 0) {
+            button.style.display = "flex";
+        } else {
+            button.style.display = "none";
+        }
+    });
+}
+
+function applySettingsBitmask(bitmask) {
+    settingsIntervalButtons.forEach((button, index) => {
+        if ((bitmask & (1 << index)) !== 0) {
+            button.classList.add("pressed");
+        }
+    });
+}
+
+document.getElementById("testButton").addEventListener("click", () => {
+    play_interval_audio();
+});
 
 settingsIcon.addEventListener("click", () => {
     // toggle the views between flex and none
@@ -88,10 +123,6 @@ settingsIcon.addEventListener("click", () => {
     }
 });
 
-document.getElementById("testButton").addEventListener("click", () => {
-    play_interval_audio();
-});
-
 intervalButtons.forEach((button) => {
     button.addEventListener("click", handleButtonClick);
 });
@@ -100,23 +131,24 @@ settingsIntervalButtons.forEach((button) => {
     button.addEventListener("click", () => {
         button.classList.toggle("pressed");
 
-        invoke("write_settings", { currentValidIntervals: calculateBitmask() });
+        let bitmask = calculateBitmask();
+
+        applyBitmask(bitmask);
+
+        invoke("write_settings", { currentValidIntervals: bitmask });
     });
 });
 
-function calculateBitmask() {
-    let bitmask = 0;
-
-    settingsIntervalButtons.forEach((button, index) => {
-        if (button.classList.contains("pressed")) {
-            bitmask |= 1 << index;
-        }
-    });
-
-    return bitmask;
-}
-
 window.addEventListener("DOMContentLoaded", async () => {
-    await get_new_interval();
+    let settings = await invoke("load_settings");
+    let bitmask = parseInt(settings[0]);
+
+    await get_new_interval(bitmask);
     play_interval_audio();
+
+    console.log(settings);
+
+    console.log(bitmask);
+    applyBitmask(bitmask);
+    applySettingsBitmask(bitmask);
 });

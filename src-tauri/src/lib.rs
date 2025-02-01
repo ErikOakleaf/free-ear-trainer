@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::{BufRead, BufReader};
 use std::{env, fs::File, thread, time::Duration};
 
 use rodio::{Decoder, OutputStream, Sink};
@@ -54,6 +55,15 @@ fn write_settings(current_valid_intervals: u16) {
 }
 
 #[tauri::command]
+fn load_settings() -> Vec<String> {
+    let file = File::open("src/data/settings.txt").unwrap();
+    let reader = BufReader::new(file);
+    let lines: Vec<String> = reader.lines().filter_map(Result::ok).collect();
+
+    lines
+}
+
+#[tauri::command]
 fn play_interval_audio(interval_in_semitones: [u8; 2]) {
     thread::spawn(move || {
         let _ = play_audio(interval_in_semitones[0].to_string());
@@ -71,7 +81,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             play_interval_audio,
             get_interval,
-            write_settings
+            write_settings,
+            load_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
