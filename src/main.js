@@ -8,6 +8,8 @@ let currentInterval = [];
 let weights = [];
 let settings = [];
 let weightApplied = false;
+let enableWeights = true;
+let bitmask = 0;
 
 // define the html elements as variables
 
@@ -18,18 +20,14 @@ const settingsView = document.getElementById("settings");
 const settingsIntervalButtons = document.querySelectorAll(
     ".settings-interval-button",
 );
+const enableWeightsButton = document.getElementById("enableWeightsButton");
 
 async function get_new_interval(bitmask) {
-    console.log(bitmask);
-    console.log(weights);
     currentInterval = await invoke("get_interval", {
         validIntervals: bitmask,
         weights: weights,
+        enableWeights: enableWeights,
     });
-
-    // debug stuff here
-    document.getElementById("testTag").innerHTML =
-        currentInterval[1] - currentInterval[0];
 }
 
 function play_interval_audio() {
@@ -64,9 +62,6 @@ async function handleButtonClick(event) {
 
     const currentIntervalInSemitones = currentInterval[1] - currentInterval[0];
 
-    console.log(semitones);
-    console.log(currentIntervalInSemitones);
-
     if (currentIntervalInSemitones == semitones) {
         // turn every button to white if the correct answer is given
 
@@ -82,7 +77,7 @@ async function handleButtonClick(event) {
         }, 300);
 
         // add weight to interval
-        if (!weightApplied) {
+        if (!weightApplied && enableWeights) {
             applyWeightToInterval(currentIntervalInSemitones, true);
             invoke("write_weights", { weights: weights });
         }
@@ -90,13 +85,13 @@ async function handleButtonClick(event) {
         weightApplied = false;
 
         // get a new interval
-        await get_new_interval(calculateBitmask());
+        await get_new_interval(bitmask);
         play_interval_audio();
     } else {
         const currentButton = document.getElementById(buttonId);
         currentButton.style.backgroundColor = "#CD5C5C";
 
-        if (!weightApplied) {
+        if (!weightApplied && enableWeights) {
             applyWeightToInterval(currentIntervalInSemitones, false);
             weightApplied = true;
             invoke("write_weights", { weights: weights });
@@ -121,6 +116,10 @@ function calculateBitmask() {
         }
     });
 
+    if (bitmask === 0) {
+        bitmask = 1;
+    }
+
     return bitmask;
 }
 
@@ -142,7 +141,7 @@ function applySettingsBitmask(bitmask) {
     });
 }
 
-document.getElementById("testButton").addEventListener("click", () => {
+document.getElementById("playButton").addEventListener("click", () => {
     play_interval_audio();
 });
 
@@ -156,7 +155,15 @@ settingsIcon.addEventListener("click", async () => {
         mainView.style.display = "flex";
         settingsView.style.display = "none";
         settingsIcon.src = "assets/settings-cog.svg";
-        await get_new_interval(calculateBitmask());
+
+        invoke("write_settings", {
+            currentValidIntervals: bitmask,
+            enableWeights: enableWeights,
+        });
+
+        invoke("write_weights", { weights: weights });
+
+        await get_new_interval(bitmask);
         play_interval_audio();
     }
 });
@@ -169,12 +176,19 @@ settingsIntervalButtons.forEach((button) => {
     button.addEventListener("click", () => {
         button.classList.toggle("pressed");
 
-        let bitmask = calculateBitmask();
+        bitmask = calculateBitmask();
 
         applyBitmask(bitmask);
-
-        invoke("write_settings", { currentValidIntervals: bitmask });
     });
+});
+
+enableWeightsButton.addEventListener("click", function () {
+    enableWeights = !enableWeights;
+    this.classList.toggle("pressed");
+});
+
+document.getElementById("resetWeightsButton").addEventListener("click", () => {
+    weights = new Array(13).fill(1.0);
 });
 
 window.addEventListener("DOMContentLoaded", async (event) => {
@@ -183,14 +197,17 @@ window.addEventListener("DOMContentLoaded", async (event) => {
     weights = await invoke("load_weights");
 
     settings = await invoke("load_settings");
-    let bitmask = parseInt(settings[0]);
+    bitmask = parseInt(settings[0]);
+
+    // apply the correct class to the enable weights settings button
+    enableWeights = JSON.parse(settings[1]);
+    if (enableWeights) {
+        enableWeightsButton.classList.add("pressed");
+    }
 
     await get_new_interval(bitmask);
     play_interval_audio();
 
-    console.log(settings);
-
-    console.log(bitmask);
     applyBitmask(bitmask);
     applySettingsBitmask(bitmask);
 });

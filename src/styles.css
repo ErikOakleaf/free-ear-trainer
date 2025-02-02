@@ -110,6 +110,16 @@ button {
     margin: auto;
 }
 
+.general-settings-buttons-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    max-width: 40pc;
+    margin: auto;
+}
+
 .button-container {
     display: flex;
     padding: 10px;
@@ -137,11 +147,27 @@ button {
     background-color: #dddddd;
 }
 
-.settings-interval-button.pressed {
+.general-settings-button {
+    transition: all 0.3s ease;
+    width: 100%;
+    font-size: 10px;
+    margin: 10px;
+}
+
+.settings-interval-button.pressed,
+.general-settings-button.pressed {
     background-color: #c1d8f0;
 }
 
 .settings-container {
     display: flex;
     flex-direction: row;
+}
+
+.play-button {
+    background-color: #74a3a6;
+    max-width: 50%;
+    margin: auto;
+    margin-bottom: 80px;
+    margin-top: 40px;
 }
