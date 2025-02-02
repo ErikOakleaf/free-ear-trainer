@@ -110,7 +110,7 @@ document.getElementById("testButton").addEventListener("click", () => {
     play_interval_audio();
 });
 
-settingsIcon.addEventListener("click", () => {
+settingsIcon.addEventListener("click", async () => {
     // toggle the views between flex and none
     if (settingsView.style.display === "none") {
         mainView.style.display = "none";
@@ -120,6 +120,8 @@ settingsIcon.addEventListener("click", () => {
         mainView.style.display = "flex";
         settingsView.style.display = "none";
         settingsIcon.src = "assets/settings-cog.svg";
+        await get_new_interval(calculateBitmask());
+        play_interval_audio();
     }
 });
 

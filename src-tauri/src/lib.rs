@@ -4,7 +4,6 @@ use std::{env, fs::File, thread, time::Duration};
 
 use rodio::{Decoder, OutputStream, Sink};
 
-use rand::prelude::SliceRandom;
 use rand::Rng;
 
 // takes a bit mask where the thirteen least significant bits represent the valid intervals that
@@ -13,15 +12,47 @@ use rand::Rng;
 #[tauri::command]
 fn get_interval(valid_intervals: u16) -> [u8; 2] {
     let mut rng = rand::thread_rng();
+
     let intervals: Vec<u8> = (0..=12)
         .filter(|&i| valid_intervals & (1 << i) != 0)
         .collect();
-    let &interval_size = intervals
-        .choose(&mut rng)
-        .expect("No valid intervals provided");
+
+    // weighted random algorithm
+    let interval_weights = read_weights(&intervals);
+    let total_weight: f32 = interval_weights.iter().sum();
+    let mut random_value = rng.gen_range(0.0..total_weight);
+    let mut interval_size = intervals[0];
+
+    for (index, &weight) in interval_weights.iter().enumerate() {
+        if random_value < weight {
+            interval_size = intervals[index];
+            break;
+        }
+
+        random_value -= weight;
+    }
+
     let starting_note_number = rng.gen_range(57..=82 - interval_size);
 
     [starting_note_number, starting_note_number + interval_size]
+}
+
+fn read_weights(intervals: &Vec<u8>) -> Vec<f32> {
+    let file = File::open("src/data/weights.csv").unwrap();
+    let reader = BufReader::new(file);
+
+    // read weights for all the lines
+    let all_weights: Vec<f32> = reader
+        .lines()
+        .map(|line| line.unwrap().parse::<f32>().unwrap())
+        .collect();
+
+    let filterd_weights: Vec<f32> = intervals
+        .iter()
+        .map(|&index| all_weights[index as usize])
+        .collect();
+
+    filterd_weights
 }
 
 fn play_audio(note_number: String) -> Result<(), String> {
