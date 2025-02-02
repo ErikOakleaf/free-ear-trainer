@@ -10,7 +10,7 @@ use rand::Rng;
 // can be generated. returns two numbers that are the note numbers for the interval
 
 #[tauri::command]
-fn get_interval(valid_intervals: u16) -> [u8; 2] {
+fn get_interval(valid_intervals: u16, weights: [f32; 13]) -> [u8; 2] {
     let mut rng = rand::thread_rng();
 
     let intervals: Vec<u8> = (0..=12)
@@ -18,7 +18,11 @@ fn get_interval(valid_intervals: u16) -> [u8; 2] {
         .collect();
 
     // weighted random algorithm
-    let interval_weights = read_weights(&intervals);
+
+    let interval_weights: Vec<f32> = intervals
+        .iter()
+        .map(|&index| weights[index as usize])
+        .collect();
     let total_weight: f32 = interval_weights.iter().sum();
     let mut random_value = rng.gen_range(0.0..total_weight);
     let mut interval_size = intervals[0];
@@ -37,22 +41,29 @@ fn get_interval(valid_intervals: u16) -> [u8; 2] {
     [starting_note_number, starting_note_number + interval_size]
 }
 
-fn read_weights(intervals: &Vec<u8>) -> Vec<f32> {
+#[tauri::command]
+fn load_weights() -> [f32; 13] {
     let file = File::open("src/data/weights.csv").unwrap();
     let reader = BufReader::new(file);
 
     // read weights for all the lines
-    let all_weights: Vec<f32> = reader
-        .lines()
-        .map(|line| line.unwrap().parse::<f32>().unwrap())
-        .collect();
+    let mut lines = [0.0; 13];
+    for (i, line) in reader.lines().take(13).enumerate() {
+        lines[i] = line.unwrap().parse::<f32>().unwrap();
+    }
 
-    let filterd_weights: Vec<f32> = intervals
+    lines
+}
+
+#[tauri::command]
+fn write_weights(weights: [f32; 13]) {
+    let weights_path = "src/data/weights.csv";
+    let weights_string = weights
         .iter()
-        .map(|&index| all_weights[index as usize])
-        .collect();
-
-    filterd_weights
+        .map(|&w| w.to_string())
+        .collect::<Vec<String>>()
+        .join("\n");
+    let _ = fs::write(weights_path, weights_string);
 }
 
 fn play_audio(note_number: String) -> Result<(), String> {
@@ -114,6 +125,8 @@ pub fn run() {
             get_interval,
             write_settings,
             load_settings,
+            write_weights,
+            load_weights,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

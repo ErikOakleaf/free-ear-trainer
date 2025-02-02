@@ -1,6 +1,16 @@
 const { invoke } = window.__TAURI__.core;
+const { appWindow } = window.__TAURI__.window;
+const { listen } = window.__TAURI__.event;
+
+// define global scope variables
 
 let currentInterval = [];
+let weights = [];
+let settings = [];
+let weightApplied = false;
+
+// define the html elements as variables
+
 const intervalButtons = document.querySelectorAll(".interval-button");
 const settingsIcon = document.getElementById("settingsIcon");
 const mainView = document.getElementById("main");
@@ -11,7 +21,11 @@ const settingsIntervalButtons = document.querySelectorAll(
 
 async function get_new_interval(bitmask) {
     console.log(bitmask);
-    currentInterval = await invoke("get_interval", { validIntervals: bitmask });
+    console.log(weights);
+    currentInterval = await invoke("get_interval", {
+        validIntervals: bitmask,
+        weights: weights,
+    });
 
     // debug stuff here
     document.getElementById("testTag").innerHTML =
@@ -48,12 +62,12 @@ async function handleButtonClick(event) {
 
     const semitones = intervalToSemitones[buttonId];
 
-    const currentInterval_semitones = currentInterval[1] - currentInterval[0];
+    const currentIntervalInSemitones = currentInterval[1] - currentInterval[0];
 
     console.log(semitones);
-    console.log(currentInterval_semitones);
+    console.log(currentIntervalInSemitones);
 
-    if (currentInterval_semitones == semitones) {
+    if (currentIntervalInSemitones == semitones) {
         // turn every button to white if the correct answer is given
 
         intervalButtons.forEach((button) => {
@@ -67,12 +81,34 @@ async function handleButtonClick(event) {
             currentButton.style.backgroundColor = "white";
         }, 300);
 
+        // add weight to interval
+        if (!weightApplied) {
+            applyWeightToInterval(currentIntervalInSemitones, true);
+            invoke("write_weights", { weights: weights });
+        }
+
+        weightApplied = false;
+
         // get a new interval
         await get_new_interval(calculateBitmask());
         play_interval_audio();
     } else {
         const currentButton = document.getElementById(buttonId);
         currentButton.style.backgroundColor = "#CD5C5C";
+
+        if (!weightApplied) {
+            applyWeightToInterval(currentIntervalInSemitones, false);
+            weightApplied = true;
+            invoke("write_weights", { weights: weights });
+        }
+    }
+}
+
+function applyWeightToInterval(interval, answer_is_correct) {
+    if (answer_is_correct) {
+        weights[interval] = weights[interval] * 0.9;
+    } else {
+        weights[interval] = weights[interval] * 1.2;
     }
 }
 
@@ -141,8 +177,12 @@ settingsIntervalButtons.forEach((button) => {
     });
 });
 
-window.addEventListener("DOMContentLoaded", async () => {
-    let settings = await invoke("load_settings");
+window.addEventListener("DOMContentLoaded", async (event) => {
+    event.preventDefault();
+
+    weights = await invoke("load_weights");
+
+    settings = await invoke("load_settings");
     let bitmask = parseInt(settings[0]);
 
     await get_new_interval(bitmask);
