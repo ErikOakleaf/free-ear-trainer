@@ -1,11 +1,32 @@
-use std::fs;
-use std::io::{BufRead, BufReader};
+use std::fs::{self, OpenOptions};
+use std::io::{BufRead, BufReader, Write};
 use std::{env, fs::File, thread, time::Duration};
 
 use rand::seq::SliceRandom;
 use rodio::{Decoder, OutputStream, Sink};
 
 use rand::Rng;
+
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
+
+static SEMITONES_TO_INTERVAL: Lazy<HashMap<u8, &'static str>> = Lazy::new(|| {
+    HashMap::from([
+        (12, "perfect_octave"),
+        (11, "major_seventh"),
+        (10, "minor_seventh"),
+        (9, "major_sixth"),
+        (8, "minor_sixth"),
+        (7, "perfect_fifth"),
+        (6, "tritone"),
+        (5, "perfect_fourth"),
+        (4, "major_third"),
+        (3, "minor_third"),
+        (2, "major_second"),
+        (1, "minor_second"),
+        (0, "unison"),
+    ])
+});
 
 // takes a bit mask where the thirteen least significant bits represent the valid intervals that
 // can be generated. returns two numbers that are the note numbers for the interval
@@ -135,6 +156,23 @@ fn write_accuracy(index: usize, answer_correct: bool) {
     lines[index] = format!("{}/{}", { current_accuracy[0] }, { current_accuracy[1] });
 
     let _ = fs::write(accuracy_path, lines.join("\n"));
+
+    if current_accuracy[1] % 30 == 0 && current_accuracy[1] != 0 {
+        write_accuracy_snapshot(index, current_accuracy);
+    }
+}
+
+fn write_accuracy_snapshot(index: usize, current_accuracy: Vec<u32>) {
+    let interval: &str = SEMITONES_TO_INTERVAL.get(&(index as u8)).unwrap();
+    let mut file = OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open(format!("data/{}_accuracy_log.csv", { interval }))
+        .unwrap();
+
+    let content = format!("\n{}/{}", { current_accuracy[0] }, { current_accuracy[1] });
+
+    file.write_all(content.as_bytes()).unwrap();
 }
 
 #[tauri::command]

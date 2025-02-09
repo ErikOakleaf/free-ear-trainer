@@ -22,4 +22,4 @@ dist-ssr
 *.sw?
 
 temp.txt
-src-tauri/src/data
+src-tauri/data
