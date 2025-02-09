@@ -80,6 +80,10 @@ async function handleButtonClick(event) {
         if (!weightApplied && enableWeights) {
             applyWeightToInterval(currentIntervalInSemitones, true);
             invoke("write_weights", { weights: weights });
+            invoke("write_accuracy", {
+                index: currentIntervalInSemitones,
+                answerCorrect: true,
+            });
         }
 
         weightApplied = false;
@@ -95,6 +99,10 @@ async function handleButtonClick(event) {
             applyWeightToInterval(currentIntervalInSemitones, false);
             weightApplied = true;
             invoke("write_weights", { weights: weights });
+            invoke("write_accuracy", {
+                index: currentIntervalInSemitones,
+                answerCorrect: false,
+            });
         }
     }
 }
@@ -182,7 +190,7 @@ settingsIntervalButtons.forEach((button) => {
     });
 });
 
-enableWeightsButton.addEventListener("click", function () {
+enableWeightsButton.addEventListener("click", function() {
     enableWeights = !enableWeights;
     this.classList.toggle("pressed");
 });

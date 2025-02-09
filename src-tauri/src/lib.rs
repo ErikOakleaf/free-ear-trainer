@@ -48,7 +48,7 @@ fn get_interval(valid_intervals: u16, weights: [f32; 13], enable_weights: bool) 
 
 #[tauri::command]
 fn load_weights() -> [f32; 13] {
-    let file = File::open("src/data/weights.csv").unwrap();
+    let file = File::open("data/weights.csv").unwrap();
     let reader = BufReader::new(file);
 
     // read weights for all the lines
@@ -62,7 +62,7 @@ fn load_weights() -> [f32; 13] {
 
 #[tauri::command]
 fn write_weights(weights: [f32; 13]) {
-    let weights_path = "src/data/weights.csv";
+    let weights_path = "data/weights.csv";
     let weights_string = weights
         .iter()
         .map(|&w| w.to_string())
@@ -81,7 +81,7 @@ fn play_audio(note_number: String) -> Result<(), String> {
 
         let sink = Sink::try_new(&stream_handle).unwrap();
 
-        let file_path = format!("src/assets/sine_waves/{}.wav", note_number);
+        let file_path = format!("assets/sine_waves/{}.wav", note_number);
 
         let file = File::open(&file_path)
             .map_err(|e| format!("Failed to open file '{}': {}", file_path, e))
@@ -98,7 +98,7 @@ fn play_audio(note_number: String) -> Result<(), String> {
 
 #[tauri::command]
 fn write_settings(current_valid_intervals: u16, enable_weights: bool) {
-    let settings_path = "src/data/settings.txt";
+    let settings_path = "data/settings.txt";
     let bitmask = current_valid_intervals.to_string();
     let enable_weights_string = enable_weights.to_string();
 
@@ -109,11 +109,32 @@ fn write_settings(current_valid_intervals: u16, enable_weights: bool) {
 
 #[tauri::command]
 fn load_settings() -> Vec<String> {
-    let file = File::open("src/data/settings.txt").unwrap();
+    let file = File::open("data/settings.txt").unwrap();
     let reader = BufReader::new(file);
     let lines: Vec<String> = reader.lines().filter_map(Result::ok).collect();
 
     lines
+}
+
+#[tauri::command]
+fn write_accuracy(index: usize, answer_correct: bool) {
+    let accuracy_path = "data/accuracy.csv";
+    let file = fs::File::open(accuracy_path).unwrap();
+    let reader = BufReader::new(file);
+
+    let mut lines: Vec<String> = reader.lines().filter_map(Result::ok).collect();
+    let mut current_accuracy: Vec<u32> = lines[index]
+        .split('/')
+        .map(|s| s.trim().parse::<u32>().unwrap_or(0))
+        .collect();
+    if answer_correct {
+        current_accuracy[0] = current_accuracy[0] + 1;
+    }
+    current_accuracy[1] = current_accuracy[1] + 1;
+
+    lines[index] = format!("{}/{}", { current_accuracy[0] }, { current_accuracy[1] });
+
+    let _ = fs::write(accuracy_path, lines.join("\n"));
 }
 
 #[tauri::command]
@@ -138,6 +159,7 @@ pub fn run() {
             load_settings,
             write_weights,
             load_weights,
+            write_accuracy,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
